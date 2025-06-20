@@ -4,11 +4,14 @@ class Program
 {
     static void Main()
     {
+        int otackyMin = 650;
+        int otackyMax = 950; 
+
         Console.WriteLine("Zadej typ motoru: malý (do 1.3l), střední (1.4 - 1.9l), velký (nad 2.0l)");
         string typMotoru = Console.ReadLine().ToLower();
 
-        double minMAF = 0; 
-        double maxMAF = 0;
+        double MAFmin = 0; 
+        double MAFmax = 0;
 
 
         switch (typMotoru)
@@ -16,69 +19,114 @@ class Program
             case "malý":
             case "maly":
                 Console.WriteLine("Hodnoty nastaveny pro motor do objemu 1.3l)");
-                minMAF = 2.5;
-                maxMAF = 4.5; 
+                MAFmin = 2.5;
+                MAFmax = 4.5; 
                 break;
             case "střední":
             case "stredni":
                 Console.WriteLine("Hodnoty nastaveny pro motory o objemu 1.4 - 1.9l");
-                minMAF = 3.5;
-                maxMAF = 6.0;
+                MAFmin = 3.5;
+                MAFmax = 6.0;
                 break;
             case "velký":
             case "velky":
                 Console.WriteLine("Hodnota nastaveny pro motory o objemu nad 2.0l");
-                minMAF = 5.0;
-                maxMAF = 8.0;
+                MAFmin = 5.0;
+                MAFmax = 8.0;
                 break;
             default:
                 Console.WriteLine("Neplatný vstup. Zadej malý, stžední nebo velký"); 
                 return;
         }
-        
 
-        Console.WriteLine("Zadej otáčky motoru (např. 850):");
-        int otacky = Convert.ToInt32(Console.ReadLine());
-
-        Console.WriteLine("Zadej hodnotu MAF v g/s (např. 3.5):");
-        double maf = Convert.ToDouble(Console.ReadLine());
-
-        Console.WriteLine("Zadej hodnotu pro lambda sondu (např. 1.00)");
-        double lambda = Convert.ToDouble(Console.ReadLine());
-
-        bool otackyOk = otacky >= 650 && otacky <= 950;
-        bool lambdaOk = lambda >= 0.98 && lambda <= 1.02;
-        bool mafOk = maf >= minMAF && maf <= maxMAF;
-
-        Console.WriteLine("\n--- VYHODNOCENÍ ---"); 
+        int otacky = 0;
+        double MAF = 0;
+        double lambda = 0;
 
 
-        if (otackyOk && lambdaOk && mafOk)
+        while (true)
         {
-            Console.WriteLine("Všechny hodnoty jsou v normě.");
-        }
-        else
-        {
- 
-            if (!otackyOk)
-                Console.WriteLine("Otáčky jsou mimo rozsah volnoběhu!"); 
-            if (!lambdaOk) 
-                { Console.WriteLine("Hodnota lambda sondy vykazuje odchylku"); 
-            if (!mafOk && otackyOk && lambdaOk)
+            Console.WriteLine("Zadej otáčky motoru (např. 850):");
+            string vstup = Console.ReadLine();
+
+            if (int.TryParse(vstup, out otacky))
             {
-                    if (maf > maxMAF)
-                        Console.WriteLine("Hodnota MAF je vysoká!");
-                    else if (maf < minMAF)
-                        Console.WriteLine("Hodnota MAF je nízká!");
+                if (otacky >= 100 && otacky <= 10000) 
+                    break;
+                Console.WriteLine("Zadaná hodnota je mimo rozsah. Zadej hodnotu znovu.");
+            } 
+            else
+            {
+                Console.WriteLine("Neplatný vstup. Zadej hodnotu otáček znovu");
             }
-
-            if (!otackyOk && !lambdaOk && !mafOk)  
-                Console.WriteLine("Všechny hodnoty mimo rozsah");
-
-
-            }
-
-
         }
+
+        while (true)
+        {
+            Console.WriteLine("Zadej hodnotu MAF (g/s, např. 3.5):");
+            string vstup = Console.ReadLine();
+
+            if (double.TryParse(vstup, out MAF))
+            {
+                if (MAF >= 0 && MAF <= 100)
+                    break;
+                Console.WriteLine("Zadaná hodnota MAF je mimo rozsah. Zadej hodnotu znovu.");
+            }
+            else
+            {
+                Console.WriteLine("Neplatný vstup. Zadej hodnotu MAF znovu");
+            }
+        }
+
+        while (true)
+        {
+            Console.WriteLine("Zadej hodnotu pro lambda sondu - AFR (např. 1.00):");
+            string vstup = Console.ReadLine();
+
+            if (double.TryParse(vstup, out lambda))
+            {
+                if (lambda >= 0.5 && lambda <= 2)
+                    break;
+                Console.WriteLine("Zadaná hodnota je mimo rozsah. Zadej hodnotu znovu.");
+            }
+            else
+            {
+                Console.WriteLine("Nepllatný vstup. Zadej hodnotu pro lambda sondu znovu");
+            }
+        }
+
+        string zpravaOtacky = (otacky < otackyMin) ? "Otáčky jsou příliš nízké." :
+                              (otacky > otackyMax) ? "Otáčky jsou příliš vysoké." :
+                              "Otáčky jsou v normě.";
+
+        string zpravaMAF = (MAF < MAFmin) ? "Hodnota MAF je příliš nízká." :
+                           (MAF > MAFmax) ? "Hodnota MAF je příliš vysoká." :
+                           "Hodnota MAF je v normě.";
+
+        string zpravaLambda = (lambda < 0.97) ? "Hodnota lambdy je příliš nízká." :
+                              (lambda > 1.03) ? "Hodnota lambdy je příliš vysoká." :
+                              "Hodnoty lambdy jsou v normě.";
+
+
+        Console.WriteLine("\n--- VYHODNOCENÍ ---");
+        Console.WriteLine(zpravaOtacky); 
+        Console.WriteLine(zpravaMAF); 
+        Console.WriteLine(zpravaLambda);
+
+        if (MAF  < MAFmin && lambda > 1.03)
+        {
+           Console.WriteLine("Doporučení: kontrola těsnosti sání nebo MAF senzor");
+        }
+        else if (MAF < MAFmax && lambda < 0.97)
+        {
+            Console.WriteLine("Doporučení: kontrola regulace paliva nebo vadný MAF senzor.");
+        }
+        else if (otacky > otackyMax && lambda > 1.03)  
+        {
+            Console.WriteLine("Doporučení: kontrola podtlaku, možné přisávání falešného vzduchu.");
+        }
+
+
+        
     }
 }
